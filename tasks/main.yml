@@ -1,0 +1,27 @@
+---
+# tasks file for php-fpm_pool
+
+- name: Ensure php-fpm.conf includes /usr/local/nginx/conf/phpfpmd/*.phpfpm files
+  lineinfile:
+    dest: /usr/local/etc/php-fpm.conf
+    regexp: "^;?include=/usr/local/nginx/conf/phpfpmd/"
+    line: "include=/usr/local/nginx/conf/phpfpmd/*.phpfpm"
+  notify: restart php-fpm
+
+- name: Create nginx fastcgi params file for {{ pool_name }}
+  template: src=nginx_php.conf.j2 dest=/usr/local/nginx/conf/phpfpmd/{{ pool_name }}.conf
+  notify: restart nginx
+
+- name: Create php-fpm pool for {{ pool_name }}
+  template: src=pool.phpfpm.j2 dest=/usr/local/nginx/conf/phpfpmd/{{ pool_name }}.phpfpm
+  notify: restart php-fpm
+
+- name: Create fastcgi_cache_path directory for {{ fastcgi_cache_name }}
+  when: fastcgi_cache_name is defined
+  # Must be writable by Nginx
+  file: path=/var/cache/nginx/{{ fastcgi_cache_name }} state=directory owner=nginx mode=0700
+
+- name: Ensure /root/lock_file_permissions/ folder exists
+  # Used for shell scripts that lockdown file permissions for each php app
+  # so the php-fpm pool user can read but not write most files
+  file: path=/root/lock_file_permissions/ state=directory

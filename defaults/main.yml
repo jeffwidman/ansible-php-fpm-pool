@@ -1,0 +1,21 @@
+---
+# defaults file for php-fpm_pool
+
+pool_user: nginx
+pool_group: nginx
+
+# ondemand for low-traffic sites, dynamic for high-traffic on shared pools, and static when box dedicated to single site
+pm_type: ondemand
+pm_max_children: 4 # Used by ondemand, dynamic and static
+
+# Used only when pm_type = dynamic
+# These are absurdly low, just as safe defaults
+# Make sure to also increase pm_max_children
+pm_start_servers: 2 # Default Value: min_spare_servers + (max_spare_servers - min_spare_servers) / 2
+pm_min_spare_servers: 1
+pm_max_spare_servers: 3
+
+# Restart php worker after this many requests to prevent memory leaks from blowing up
+pm_max_requests: 1000
+
+extra_fastcgi_params: ''
